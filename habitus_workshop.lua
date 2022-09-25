@@ -59,6 +59,7 @@ pat1_div_seq = s{1/16,1/8}
 pat2_div_seq = s{1/4,1/8,1/2}
 pat2_rate_seq = s{4,-4,2,-2,s{4,3,2,1,-1,-2,-3,-4}}
 
+g = grid.connect() -- connect to our grid
 --------------------------
 -- initialization functions
 --------------------------
@@ -76,7 +77,29 @@ function init()
   set_redraw_timer()
 
   lat:start()
+
+  grid_redraw()
 end
+
+function grid_redraw()
+  g:all(0) -- turn all the LEDs off...
+  for col=1,6 do
+    g:led(lookup(col), col, 12)
+  end
+  g:refresh() -- refresh the grid
+end
+
+function lookup(col)
+  local t = {}
+  t[1] = util.round(rate, 1)
+  t[2] = util.round(rec * 15, 1)  + 1 
+  t[3] = util.round(pre * 15, 1)  + 1 
+  t[4] = util.round(slew * 15, 1) + 1  
+  t[5] = util.round(freq_mult, 1)
+  t[6] = util.round(loop_end, 1)
+
+  return t[col]
+end 
 
 -- setup lattice
 function init_lattice()
@@ -121,8 +144,8 @@ end
 -- setup softcut
 function init_softcut()
   -- send audio input to softcut input
-	audio.level_adc_cut(1)
-  
+  audio.level_adc_cut(1)
+
   softcut.buffer_clear()
   softcut.enable(1,1)
   softcut.buffer(1,1)
@@ -150,7 +173,6 @@ function init_softcut()
 
   --set post-filter band pass filter level
   softcut.post_filter_bp (1, 1)
-  
 end
 
 -- reroute the audio to allow pitch detection from audio in and softcut
@@ -237,50 +259,50 @@ end
 
 function set_rate(val)
   -- change the rate of softcut channel 1
-    rate = val
-    softcut.rate(1,rate)
-    -- set dirty_screen to true to redraw the screen 
-    fn.dirty_screen(true)
+  rate = val
+  softcut.rate(1,rate)
+  -- set dirty_screen to true to redraw the screen 
+  fn.dirty_screen(true)
 end
 
 function set_slew(val)
   -- change the rate of softcut channel 1
-    slew = val
-    softcut.rate_slew_time(1,slew)
-    -- set dirty_screen to true to redraw the screen 
-    fn.dirty_screen(true)
+  slew = val
+  softcut.rate_slew_time(1,slew)
+  -- set dirty_screen to true to redraw the screen 
+  fn.dirty_screen(true)
 end
 
 function set_rec(val)
   -- change the record le of softcut channel 1
-    rec = val
-    softcut.rec_level(1,rec)
-    -- set dirty_screen to true to redraw the screen 
-    fn.dirty_screen(true)
-  end
+  rec = val
+  softcut.rec_level(1,rec)
+  -- set dirty_screen to true to redraw the screen 
+  fn.dirty_screen(true)
+end
 
 function set_pre(val)
   -- change the prelevel of softcut channel 1
-    pre = val
-    softcut.pre_level(1,pre)
-    -- set dirty_screen to true to redraw the screen 
-    fn.dirty_screen(true)
-  end
+  pre = val
+  softcut.pre_level(1,pre)
+  -- set dirty_screen to true to redraw the screen 
+  fn.dirty_screen(true)
+end
 
-  function set_freq_mult(val)
+function set_freq_mult(val)
   -- set the frequency multipier
-    freq_mult = val
-    -- set dirty_screen to true to redraw the screen 
-    fn.dirty_screen(true)
-  end
+  freq_mult = val
+  -- set dirty_screen to true to redraw the screen 
+  fn.dirty_screen(true)
+end
 
-  function set_loop_length(val)
+function set_loop_length(val)
   -- set the length of the recording loop
-    loop_end = val
-    softcut.loop_end(1,loop_end)
-    -- set dirty_screen to true to redraw the screen 
-    fn.dirty_screen(true)
-  end
+  loop_end = val
+  softcut.loop_end(1,loop_end)
+  -- set dirty_screen to true to redraw the screen 
+  fn.dirty_screen(true)
+end
 
 
 --------------------------
@@ -288,22 +310,22 @@ function set_pre(val)
 --------------------------
 -- set a timer to redraw every 1/15th of a second
 function set_redraw_timer()
-    redrawtimer = metro.init(function() 
-      if not fn.dirty_screen() then -- don't do anything if dirty_screen returns false
-        return 
-      else -- otherwise redraw
-        redraw()
-        fn.dirty_screen(false)  
-      end
-    end, 1/15, -1) -- 1/15 sets the refresh rate and -1 means repeat forever 
-    redrawtimer:start()  
+  redrawtimer = metro.init(function() 
+    if not fn.dirty_screen() then -- don't do anything if dirty_screen returns false
+      return 
+    else -- otherwise redraw
+      redraw()
+      fn.dirty_screen(false)  
+    end
+  end, 1/15, -1) -- 1/15 sets the refresh rate and -1 means repeat forever 
+  redrawtimer:start()  
 end
-  
+
 function redraw()
 
   --draw the ui
   screen.clear() -- clear the screen 
-  
+
   -- draw line if k1 is not pressed
   if right_side_focus == false then
     screen.move(10,20)
@@ -347,6 +369,7 @@ function redraw()
 
   -- update the screen with asssbove changes
   screen.update()
+  grid_redraw()
 end
 
 --------------------------
@@ -357,9 +380,8 @@ function cleanup()
   -- restore the monitor level from when the script was first loaded
   params:set("monitor_level",monitor_level) 
 
---     os.execute("jack_disconnect softcut:output_1 SuperCollider:in_1;")  
---     os.execute("jack_disconnect softcut:output_2 SuperCollider:in_2;")
---     os.execute("jack_connect crone:output_5 SuperCollider:in_1;")  
---     os.execute("jack_connect crone:output_6 SuperCollider:in_2;")
-  
+  --     os.execute("jack_disconnect softcut:output_1 SuperCollider:in_1;")  
+  --     os.execute("jack_disconnect softcut:output_2 SuperCollider:in_2;")
+  --     os.execute("jack_connect crone:output_5 SuperCollider:in_1;")  
+  --     os.execute("jack_connect crone:output_6 SuperCollider:in_2;")
 end
