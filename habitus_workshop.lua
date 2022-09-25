@@ -91,12 +91,12 @@ end
 
 function lookup(col)
   local t = {}
-  t[1] = util.round(rate, 1)
+  t[1] = util.round(util.linlin(-4, 4, 1, 16, rate), 1)
   t[2] = util.round(rec * 15, 1)  + 1
   t[3] = util.round(pre * 15, 1)  + 1
   t[4] = util.round(slew * 15, 1) + 1
-  t[5] = util.round(freq_mult, 1)
-  t[6] = util.round(loop_end, 1)
+  t[5] = util.round(util.linlin(5, 100, 1, 16, freq_mult), 1)
+  t[6] = util.round(util.linlin(0, 3, 1, 16, loop_end), 1)
 
   return t[col]
 end
