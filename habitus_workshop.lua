@@ -78,6 +78,12 @@ function init()
 
   lat:start()
 
+  g.key = function(x,y,z)
+    if z == 1 then
+      lookup_set(y, x)
+    end
+  end
+
   grid_redraw()
 end
 
@@ -87,6 +93,26 @@ function grid_redraw()
     g:led(lookup(col), col, 12)
   end
   g:refresh() -- refresh the grid
+end
+
+function lookup_set(col, value)
+  local t = {}
+  t[1] = util.linlin(1, 16, -4, 4, value)
+  t[2] = util.linlin(1, 16, 0, 1, value)
+  t[3] = util.linlin(1, 16, 0, 1, value)
+  t[4] = util.linlin(1, 16, 0, 1, value)
+  t[5] = util.linlin(1, 16, 5, 100, value)
+  t[6] = util.linlin(1, 16, 0, 3, value)
+
+  local f = {}
+  f[1] = set_rate
+  f[2] = set_rec
+  f[3] = set_pre
+  f[4] = set_slew
+  f[5] = set_freq_mult
+  f[6] = set_loop_length
+
+  return f[col](t[col])
 end
 
 function lookup(col)
