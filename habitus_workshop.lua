@@ -92,6 +92,13 @@ function grid_redraw()
   for col=1,6 do
     g:led(lookup(col), col, 12)
   end
+
+  for col=7,8 do
+    for row=1,16 do
+      g:led(row, col, 5)
+    end
+  end
+
   g:refresh() -- refresh the grid
 end
 
